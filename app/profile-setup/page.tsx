@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
+import { useValidifyStore } from "@/lib/validify-store"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,6 +15,9 @@ import { ArrowLeft, Check, Loader2 } from "lucide-react"
 export default function ProfileSetup() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  
+  // Validify store
+  const { registerUser, isRegistering } = useValidifyStore()
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -82,10 +86,24 @@ export default function ProfileSetup() {
     if (!validateForm()) return
 
     setIsSubmitting(true)
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setIsSubmitting(false)
-    setIsSubmitted(true)
+    
+    try {
+      // Call registerUser with hardcoded IPFS hash
+      const hardcodedProfileHash = "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG" // Hardcoded for now
+      const txHash = await registerUser(hardcodedProfileHash)
+      console.log("User registration transaction:", txHash)
+      
+      // Simulate additional processing time
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      
+      setIsSubmitted(true)
+    } catch (error) {
+      console.error("Registration failed:", error)
+      // You might want to show an error message to the user here
+      alert("Registration failed. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (isSubmitted) {
@@ -339,13 +357,13 @@ export default function ProfileSetup() {
           {/* Submit Button */}
           <Button
             type="submit"
-            disabled={isSubmitting || calculateProgress() < 100}
+            disabled={isSubmitting || isRegistering || calculateProgress() < 100}
             className="w-full bg-[#2383E2] hover:bg-[#1a6bc7] text-white py-3 rounded-md transition-all duration-200 hover:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 h-12"
           >
-            {isSubmitting ? (
+            {isSubmitting || isRegistering ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Saving Profile...
+                {isRegistering ? "Registering on Blockchain..." : "Saving Profile..."}
               </>
             ) : (
               "Complete Profile Setup"

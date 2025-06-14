@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Providers } from '@/components/providers'
+import { Toaster } from 'sonner'
+import { DemoInitializer } from '@/components/demo-initializer'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'Validify',
 }
 
 export default function RootLayout({
@@ -16,7 +16,21 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <DemoInitializer />
+          {children}
+        </Providers>
+        <Toaster 
+          theme="dark" 
+          position="top-right"
+          toastOptions={{
+            style: {
+              background: '#2F2F2F',
+              border: '1px solid #404040',
+              color: '#E5E5E5',
+            },
+          }}
+        />
       </body>
     </html>
   )
