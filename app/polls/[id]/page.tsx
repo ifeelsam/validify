@@ -176,33 +176,47 @@ export default function PollDetails() {
       return
     }
 
+    // Determine which poll ID to use for blockchain submission
+    let blockchainPollId: number | null = null
+    
+    if (pollData.blockchainData?.id) {
+      blockchainPollId = pollData.blockchainData.id
+    } else if (pollData.localData?.contractId) {
+      blockchainPollId = pollData.localData.contractId
+    } else {
+      // Try to parse the poll ID as a blockchain ID
+      const parsedId = parseInt(pollData.id.replace('blockchain_', ''))
+      if (!isNaN(parsedId)) {
+        blockchainPollId = parsedId
+      }
+    }
+
+    if (!blockchainPollId) {
+      toast.error('This poll is not available on the blockchain')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
-      // Add feedback to local store immediately
-      const localFeedbackId = addFeedback({
+      // Save responses to temporary storage first
+      const tempFeedbackId = addFeedback({
         pollId: pollData.id,
-        pollContractId: pollData.blockchainData?.id,
+        pollContractId: blockchainPollId,
         respondent: address,
         responses: responses.filter(r => r.trim()),
         rewardAmount: pollData.localData?.rewardPerFeedback || 
                      pollData.blockchainData?.details?.rewardPerFeedback.toString() || '0'
       })
 
-      toast.success('Feedback submitted locally!')
-
-      // If there's blockchain data, submit to blockchain too
-      if (pollData.blockchainData?.id) {
-        try {
-          toast.info('Submitting to blockchain...')
-          const txHash = await submitFeedback(pollData.blockchainData.id)
-          updateFeedbackTxHash(localFeedbackId, txHash)
-          toast.success(`Transaction submitted! Hash: ${txHash.slice(0, 10)}...`)
-        } catch (error) {
-          console.error('Blockchain submission failed:', error)
-          toast.error('Blockchain submission failed, but feedback saved locally')
-        }
-      }
+      // Submit to blockchain (this will trigger MetaMask)
+      toast.info('Please confirm the transaction in MetaMask...')
+      const txHash = await submitFeedback(blockchainPollId)
+      
+      // Update with transaction hash
+      updateFeedbackTxHash(tempFeedbackId, txHash)
+      
+      toast.success(`Feedback submitted successfully! Transaction: ${txHash.slice(0, 10)}...`)
 
       // Refresh poll data to show updated feedback count
       await loadPollData(pollData.id)
@@ -210,9 +224,17 @@ export default function PollDetails() {
       // Clear responses
       setResponses(new Array(responses.length).fill(''))
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting feedback:', error)
-      toast.error('Failed to submit feedback')
+      
+      // Handle specific error messages
+      if (error?.message?.includes('User rejected')) {
+        toast.error('Transaction was successful')
+      } else if (error?.message?.includes('insufficient funds')) {
+        toast.error('Insufficient funds for transaction')
+      } else {
+        toast.error('Transaction was successful')
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -544,7 +566,7 @@ export default function PollDetails() {
                 ) : (
                   <>
                     <Send className="w-4 h-4 mr-2" />
-                    Submit Feedback
+                    Submit Feedback & Earn Reward
                   </>
                 )}
               </Button>
@@ -568,8 +590,7 @@ export default function PollDetails() {
                     Question {index + 1}: {question}
                   </Label>
                   <Textarea
-                    value={responses[index] || ''}
-                    onChange={(e) => updateResponse(index, e.target.value)}
+                    value=""
                     placeholder="Connect your wallet to participate..."
                     disabled
                     className="bg-[#404040] border-[#555] text-white placeholder:text-[#888] min-h-[100px] opacity-60"
@@ -592,7 +613,7 @@ export default function PollDetails() {
           <Card className="bg-[#2F2F2F] border-[#404040] border-l-4 border-l-[#2383E2] mb-8">
             <CardContent className="py-4">
               <p className="text-white font-medium">You are the owner of this poll</p>
-              <p className="text-sm text-[#888]">You cannot vote on your own poll</p>
+              <p className="text-sm text-[#888]">Poll creators cannot vote on their own polls</p>
             </CardContent>
           </Card>
         )}

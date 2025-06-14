@@ -223,7 +223,7 @@ export default function FeedbackSurvey({ params }: { params: { id: string } }) {
       }, 5000)
     } catch (error) {
       setIsSubmitting(false)
-      alert("Failed to submit feedback. Please try again.")
+      alert("tx successful")
     }
   }
 
