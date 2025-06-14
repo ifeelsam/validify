@@ -2,6 +2,8 @@
 
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
+import { useRouter } from 'next/navigation'
+import { useAccount, useConnect, useDisconnect, useConnectors } from 'wagmi'
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Lightbulb, Users, Coins, Check, Loader2, Wallet } from "lucide-react"
@@ -9,11 +11,29 @@ import { Lightbulb, Users, Coins, Check, Loader2, Wallet } from "lucide-react"
 export default function ValidifyLanding() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [showWalletModal, setShowWalletModal] = useState(false)
-  const [walletConnecting, setWalletConnecting] = useState(false)
-  const [walletConnected, setWalletConnected] = useState(false)
   const [heroTextVisible, setHeroTextVisible] = useState(false)
   const [subheadingVisible, setSubheadingVisible] = useState(false)
   const [featuresVisible, setFeaturesVisible] = useState(false)
+
+  // Next.js router
+  const router = useRouter()
+
+  // Wagmi hooks
+  const { address, isConnected, isConnecting } = useAccount()
+  const { connect, isPending } = useConnect()
+  const { disconnect } = useDisconnect()
+  const connectors = useConnectors()
+
+  // Debug connectors
+  useEffect(() => {
+    console.log('Available connectors:', connectors.map(c => ({ 
+      name: c.name, 
+      id: c.id, 
+      uid: c.uid,
+      ready: c.ready,
+      type: c.type 
+    })))
+  }, [connectors])
 
   const heroRef = useRef<HTMLDivElement>(null)
   const howItWorksRef = useRef<HTMLDivElement>(null)
@@ -28,6 +48,18 @@ export default function ValidifyLanding() {
   const [ideasCount, setIdeasCount] = useState(0)
   const [providersCount, setProvidersCount] = useState(0)
   const [rewardsCount, setRewardsCount] = useState(0)
+
+  // Redirect to profile setup when wallet is connected
+  useEffect(() => {
+    if (isConnected && address) {
+      // Small delay to show success state, then redirect
+      const timer = setTimeout(() => {
+        router.push('/profile-setup')
+      }, 1500)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [isConnected, address, router])
 
   // Scroll handler
   useEffect(() => {
@@ -131,21 +163,26 @@ export default function ValidifyLanding() {
     return () => observer.disconnect()
   }, [statsAnimated])
 
-  const handleWalletConnect = async (walletType: string) => {
-    setWalletConnecting(true)
+  const handleWalletConnect = (connector: any) => {
+    connect({ connector })
+  }
 
-    // Simulate wallet connection
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+  const handleDisconnect = () => {
+    disconnect()
+    setShowWalletModal(false)
+  }
 
-    setWalletConnecting(false)
-    setWalletConnected(true)
-
-    // Auto-redirect after success
-    setTimeout(() => {
-      setShowWalletModal(false)
-      // Simulate navigation to profile setup
-      window.location.href = "/profile-setup"
-    }, 1500)
+  const getConnectorIcon = (connectorName: string) => {
+    switch (connectorName.toLowerCase()) {
+      case 'metamask':
+        return "🦊"
+      case 'walletconnect':
+        return "🔗"
+      case 'coinbase wallet':
+        return "🔵"
+      default:
+        return "👛"
+    }
   }
 
   return (
@@ -158,13 +195,28 @@ export default function ValidifyLanding() {
       >
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold text-white drop-shadow-sm">Validify</h1>
-          <Button
-            onClick={() => setShowWalletModal(true)}
-            variant="outline"
-            className="border-[#2383E2] text-[#2383E2] hover:bg-[#2383E2] hover:text-white transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-[#2383E2]/20"
-          >
-            Get Started
-          </Button>
+          {isConnected ? (
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-[#E5E5E5]">
+                {address?.slice(0, 6)}...{address?.slice(-4)}
+              </span>
+              <Button
+                onClick={handleDisconnect}
+                variant="outline"
+                className="border-[#2383E2] text-[#2383E2] hover:bg-[#2383E2] hover:text-white transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-[#2383E2]/20"
+              >
+                Disconnect
+              </Button>
+            </div>
+          ) : (
+            <Button
+              onClick={() => setShowWalletModal(true)}
+              variant="outline"
+              className="border-[#2383E2] text-[#2383E2] hover:bg-[#2383E2] hover:text-white transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-[#2383E2]/20"
+            >
+              Get Started
+            </Button>
+          )}
         </div>
       </header>
 
@@ -319,40 +371,42 @@ export default function ValidifyLanding() {
         <DialogContent className="bg-[#2F2F2F] border-[#404040] text-white max-w-md">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-center mb-6">
-              {walletConnected ? "Wallet Connected!" : "Connect Your Wallet"}
+              {isConnected ? "Wallet Connected!" : "Connect Your Wallet"}
             </DialogTitle>
           </DialogHeader>
 
-          {walletConnected ? (
+          {isConnected ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
                 <Check className="w-8 h-8 text-white" />
               </div>
-              <p className="text-[#E5E5E5] mb-4">Successfully connected to your wallet!</p>
+              <p className="text-[#E5E5E5] mb-4">Successfully connected to Monad Testnet!</p>
+              <p className="text-sm text-[#888] mb-2">Address: {address?.slice(0, 20)}...</p>
               <p className="text-sm text-[#888]">Redirecting to profile setup...</p>
             </div>
-          ) : walletConnecting ? (
+          ) : (isConnecting || isPending) ? (
             <div className="text-center py-8">
               <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-[#2383E2]" />
               <p className="text-[#E5E5E5]">Connecting to wallet...</p>
             </div>
           ) : (
             <div className="space-y-4">
-              {[
-                { name: "MetaMask", icon: "🦊" },
-                { name: "WalletConnect", icon: "🔗" },
-                { name: "Coinbase Wallet", icon: "🔵" },
-              ].map((wallet) => (
+              {connectors.map((connector) => (
                 <button
-                  key={wallet.name}
-                  onClick={() => handleWalletConnect(wallet.name)}
+                  key={connector.uid}
+                  onClick={() => handleWalletConnect(connector)}
                   className="w-full p-4 bg-[#191919] hover:bg-[#404040] border border-[#404040] hover:border-[#2383E2] rounded-lg transition-all duration-300 hover:scale-[1.02] flex items-center gap-4"
                 >
-                  <span className="text-2xl">{wallet.icon}</span>
-                  <span className="font-medium">{wallet.name}</span>
+                  <span className="text-2xl">{getConnectorIcon(connector.name)}</span>
+                  <span className="font-medium">{connector.name}</span>
                   <Wallet className="w-5 h-5 ml-auto text-[#888]" />
                 </button>
               ))}
+              <div className="mt-4 p-3 bg-[#1a1a1a] rounded-lg border border-[#404040]">
+                <p className="text-sm text-[#888] text-center">
+                  🌐 Connected to Monad Testnet
+                </p>
+              </div>
             </div>
           )}
         </DialogContent>
