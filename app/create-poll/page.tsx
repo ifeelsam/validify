@@ -314,7 +314,7 @@ export default function CreatePoll() {
                 </div>
 
                 <div>
-                  <Label htmlFor="rewardPerFeedback" className="text-[#E5E5E5]">Reward per Feedback (ETH)</Label>
+                  <Label htmlFor="rewardPerFeedback" className="text-[#E5E5E5]">Reward per Feedback (MON)</Label>
                   <Input
                     id="rewardPerFeedback"
                     type="number"
@@ -342,7 +342,7 @@ export default function CreatePoll() {
 
               <div className="bg-[#404040] p-4 rounded-lg">
                 <p className="text-[#E5E5E5] text-sm">
-                  <strong>Total Cost:</strong> {(parseFloat(formData.rewardPerFeedback) * formData.maxFeedbacks).toFixed(3)} ETH
+                  <strong>Total Cost:</strong> {(parseFloat(formData.rewardPerFeedback) * formData.maxFeedbacks).toFixed(3)} MON
                 </p>
                 <p className="text-[#888] text-xs mt-1">
                   This amount will be locked in the contract and distributed to feedback providers

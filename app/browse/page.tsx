@@ -422,7 +422,7 @@ export default function BrowsePolls() {
                             </span>
                           </div>
                           <div className="text-sm text-[#E5E5E5] font-medium">
-                            {getPollReward(poll)} ETH
+                            {getPollReward(poll)} MON
                           </div>
                         </div>
                       </div>
@@ -620,7 +620,7 @@ export default function BrowsePolls() {
                           </span>
                         </div>
                         <div className="text-sm text-[#E5E5E5] font-medium">
-                          {getPollReward(poll)} ETH
+                          {getPollReward(poll)} MON
                         </div>
                       </div>
                     </div>

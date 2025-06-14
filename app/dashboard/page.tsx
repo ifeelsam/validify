@@ -310,7 +310,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold text-white">
-                {formatWeiToEth(currentUser?.totalSpent || BigInt(0))} ETH
+                {formatWeiToEth(currentUser?.totalSpent || BigInt(0))} MON
               </p>
             </CardContent>
           </Card>
@@ -321,7 +321,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold text-white">
-                {formatWeiToEth(currentUser?.totalEarned || BigInt(0))} ETH
+                {formatWeiToEth(currentUser?.totalEarned || BigInt(0))} MON
               </p>
             </CardContent>
           </Card>
@@ -402,7 +402,7 @@ export default function Dashboard() {
                           </span>
                         </div>
                         <div className="text-sm text-[#E5E5E5] font-medium">
-                          {getPollReward(poll)} ETH per response
+                          {getPollReward(poll)} MON per response
                         </div>
                   </div>
 

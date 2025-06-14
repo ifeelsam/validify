@@ -506,7 +506,7 @@ export default function PollDetails() {
                 </span>
               </div>
               <div className="text-sm text-[#E5E5E5] font-medium">
-                {getPollReward()} ETH per response
+                {getPollReward()} MON per response
               </div>
             </div>
             
@@ -538,7 +538,7 @@ export default function PollDetails() {
             <CardHeader>
               <CardTitle className="text-white">Submit Your Feedback</CardTitle>
               <p className="text-[#888] text-sm">
-                Answer all questions to earn {getPollReward()} ETH
+                Answer all questions to earn {getPollReward()} MON
               </p>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -580,7 +580,7 @@ export default function PollDetails() {
             <CardHeader>
               <CardTitle className="text-white">Submit Your Feedback</CardTitle>
               <p className="text-[#888] text-sm">
-                Connect your wallet to participate and earn {getPollReward()} ETH
+                Connect your wallet to participate and earn {getPollReward()} MON
               </p>
             </CardHeader>
             <CardContent className="space-y-6">

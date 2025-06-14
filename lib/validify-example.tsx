@@ -153,8 +153,8 @@ export function ValidifyExample() {
             <p><strong>Registered:</strong> {currentUser?.isRegistered ? 'Yes' : 'No'}</p>
             {currentUser?.isRegistered && (
               <>
-                <p><strong>Total Earned:</strong> {formatWeiToEth(currentUser.totalEarned)} ETH</p>
-                <p><strong>Total Spent:</strong> {formatWeiToEth(currentUser.totalSpent)} ETH</p>
+                <p><strong>Total Earned:</strong> {formatWeiToEth(currentUser.totalEarned)} MON</p>
+                <p><strong>Total Spent:</strong> {formatWeiToEth(currentUser.totalSpent)} MON</p>
                 <p><strong>Profile Hash:</strong> {currentUser.profileIPFSHash}</p>
               </>
             )}
@@ -216,7 +216,7 @@ export function ValidifyExample() {
               />
               {pollCost && (
                 <p className="text-sm text-gray-600">
-                  <strong>Total Cost:</strong> {formatWeiToEth(pollCost)} ETH
+                  <strong>Total Cost:</strong> {formatWeiToEth(pollCost)} MON
                 </p>
               )}
               <Button 
